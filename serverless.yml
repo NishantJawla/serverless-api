@@ -1,10 +1,13 @@
 service: serverlessapi #Name of your App
 
+plugins:
+  - serverless-dotenv-plugin
+
 provider:
   name: aws
   runtime: nodejs14.x # Node JS version
-  memorySize: 512
-  timeout: 15
+  memorySize:
+  timeout: 128
   stage: production
   region: us-east-1 # AWS region
 
