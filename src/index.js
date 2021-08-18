@@ -8,12 +8,23 @@ app.get('/', (req, res) => {
 
 app.get('/readuser', (req, res) => {
     
-    var params = {
-        TableName: "emailserverless",
-        Key: {
-            "useremail": "nishantjawla12225@gmail.com"
-        }
-    };
+    const dataType = "phonenumber";
+    if(dataType === 'email'){
+        var params = {
+            TableName: "emailserverless",
+            Key: {
+                "useremail": "nishantjawla12225@gmail.com"
+            }
+        };
+    } else {
+        var params = {
+            TableName: "phonenumberserverless",
+            Key: {
+                "userphonenumber": "7054409248"
+            }
+        };
+    }
+    
     docClient.get(params, function (err, data) {
         if (err) {
             console.log("Error in Fetching User - " + JSON.stringify(err, null, 2));
