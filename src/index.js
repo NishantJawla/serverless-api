@@ -21,14 +21,14 @@ app.post('/readuser', (req, res) => {
         var params = {
             TableName: "emailserverless",
             Key: {
-                "useremail": "nishantjawla12225@gmail.com"
+                "useremail": value
             }
         };
     } else {
         var params = {
             TableName: "phonenumberserverless",
             Key: {
-                "userphonenumber": "7054409248"
+                "userphonenumber": value
             }
         };
     }
