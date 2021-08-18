@@ -2,13 +2,21 @@ const e = require('express');
 const express = require('express');
 const app = express();
 const docClient = require('./aws')
+app.use(express.urlencoded({extended: true}));
+app.use(express.json());
+
 app.get('/', (req, res) => {
     res.status(200).send("Hi Welcome to the API")
 })
 
-app.get('/readuser', (req, res) => {
+app.post('/readuser', (req, res) => {
+    const value = req.body.value;
+    var dataType = "phonenumber"
+    if(value.includes("@")){
+        console.log("Value is an Email")
+        dataType = "email";
+    } 
     
-    const dataType = "phonenumber";
     if(dataType === 'email'){
         var params = {
             TableName: "emailserverless",
@@ -31,12 +39,26 @@ app.get('/readuser', (req, res) => {
         }
         else {
             console.log("Succesfully Fetching the User - " + JSON.stringify(data, null, 2));
-            res.status(200).send(JSON.stringify(data, null, 2));
             if(Object.keys(data).length === 0){
                 console.log("User Not Found!!!")
             } else {
-                console.log("User Found!!!")
+                const response = data.Item;
+                console.log(response)
+                const paramsforusertable = {
+                    TableName: "uuidserverless",
+                    Key: {
+                        "uuid": response.uuid
+                    }
+                };
+                docClient.get(paramsforusertable, function (err, data) {
+                    if(err) {
+                        console.log("unable to retrieve data from server uuid serverless table")
+                    } else {
+                        res.status(200).json(data)
+                    }
+                })
             }
+
         }
     })
 })
