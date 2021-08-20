@@ -141,15 +141,18 @@ app.post("/signin", (req, res) => {
               error: "Server Failure!!",
             });
           } else {
-            if (req.body.password === data.Item.password) {
-              res.status(200).json({
-                msg: "Congratulations! On login succesfull",
-              });
-            } else {
-              res.status(200).json({
-                error: "Password is Invalid",
-              });
-            }
+            bcrypt.compare(req.body.password, data.Item.password, function(err, result) {
+                // res === true
+                if(result === true){
+                    res.status(200).json({
+                        msg: "Congratulations! On login succesfull",
+                    });
+                } else {
+                    res.status(200).json({
+                        error: "Password is Invalid",
+                      });
+                }
+            });
           }
         });
       }
