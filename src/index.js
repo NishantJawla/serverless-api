@@ -1,154 +1,263 @@
-const e = require('express');
-const express = require('express');
+const express = require("express");
 const app = express();
-const docClient = require('./aws')
-app.use(express.urlencoded({extended: true}));
+const docClient = require("./aws");
+const cors = require("cors");
+const { v4: uuidv4 } = require('uuid');
+var bcrypt = require("bcryptjs");
+const { SALT } = require("./secret");
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cors());
+app.get("/", (req, res) => {
+  res.status(200).send("Hi Welcome to the API");
+});
 
-app.get('/', (req, res) => {
-    res.status(200).send("Hi Welcome to the API")
-})
+app.post("/readuser", (req, res) => {
+  const value = req.body.value;
+  var dataType = "phonenumber";
+  if (value.includes("@")) {
+    console.log("Value is an Email");
+    dataType = "email";
+  }
 
-app.post('/readuser', (req, res) => {
-    const value = req.body.value;
-    var dataType = "phonenumber"
-    if(value.includes("@")){
-        console.log("Value is an Email")
-        dataType = "email";
-    } 
-    
-    if(dataType === 'email'){
-        var params = {
-            TableName: "emailserverless",
-            Key: {
-                "useremail": value
-            }
-        };
+  if (dataType === "email") {
+    var params = {
+      TableName: "emailserverless",
+      Key: {
+        useremail: value,
+      },
+    };
+  } else {
+    var params = {
+      TableName: "phonenumberserverless",
+      Key: {
+        userphonenumber: value,
+      },
+    };
+  }
+
+  docClient.get(params, function (err, data) {
+    if (err) {
+      console.log("Error in Fetching User : " + JSON.stringify(err, null, 2));
+      res.status(500).json({
+        error: "Server Failure!!",
+      });
     } else {
-        var params = {
-            TableName: "phonenumberserverless",
-            Key: {
-                "userphonenumber": value
-            }
+      console.log(
+        "Succesfully Fetching the User : " + JSON.stringify(data, null, 2)
+      );
+      if (Object.keys(data).length === 0) {
+        console.log("User Not Found!!!");
+        res.status(404).json({
+          error: "Invalid email/ phoneNumber",
+        });
+      } else {
+        const response = data.Item;
+        console.log(response);
+        const paramsforusertable = {
+          TableName: "uuidserverless",
+          Key: {
+            uuid: response.uuid,
+          },
         };
-    }
-    
-    docClient.get(params, function (err, data) {
-        if (err) {
-            console.log("Error in Fetching User : " + JSON.stringify(err, null, 2));
+        docClient.get(paramsforusertable, function (err, data) {
+          if (err) {
+            console.log(
+              "unable to retrieve data from server uuid serverless table"
+            );
             res.status(500).json({
-                error: "Server Failure!!"
-            })
-        }
-        else {
-            console.log("Succesfully Fetching the User : " + JSON.stringify(data, null, 2));
-            if(Object.keys(data).length === 0){
-                console.log("User Not Found!!!")
-                res.status(404).json({
-                    error: "Invalid email/ phoneNumber"
-                })
+              error: "Server Failure!!",
+            });
+          } else {
+            const role = data.Item.role;
+            if (role === "superadmin") {
+              res.redirect("https://www.google.com/");
+            } else if (role === "companyadmin") {
+              res.redirect("https://www.youtube.com/");
             } else {
-                const response = data.Item;
-                console.log(response)
-                const paramsforusertable = {
-                    TableName: "uuidserverless",
-                    Key: {
-                        "uuid": response.uuid
-                    }
-                };
-                docClient.get(paramsforusertable, function (err, data) {
-                    if(err) {
-                        console.log("unable to retrieve data from server uuid serverless table")
-                        res.status(500).json({
-                            error: "Server Failure!!"
-                        })
-                    } else {
-                        const role = data.Item.role;
-                        if(role === "superadmin"){
-                            res.redirect('https://www.google.com/')
-                        } else if(role === "companyadmin"){
-                            res.redirect('https://www.youtube.com/')
-                        } else {
-                            res.redirect('https://github.com/')
-                        }
-                    }
-                })
+              res.redirect("https://github.com/");
             }
+          }
+        });
+      }
+    }
+  });
+});
 
-        }
-    })
-})
+app.post("/signin", (req, res) => {
+  const value = req.body.value;
+  var dataType = "phonenumber";
+  if (value.includes("@")) {
+    console.log("Value is an Email");
+    dataType = "email";
+  }
 
+  if (dataType === "email") {
+    var params = {
+      TableName: "emailserverless",
+      Key: {
+        useremail: value,
+      },
+    };
+  } else {
+    var params = {
+      TableName: "phonenumberserverless",
+      Key: {
+        userphonenumber: value,
+      },
+    };
+  }
 
-app.post('/signin', (req, res) => {
-    const value = req.body.value;
-    var dataType = "phonenumber"
-    if(value.includes("@")){
-        console.log("Value is an Email")
-        dataType = "email";
-    } 
-    
-    if(dataType === 'email'){
-        var params = {
-            TableName: "emailserverless",
-            Key: {
-                "useremail": value
-            }
-        };
+  docClient.get(params, function (err, data) {
+    if (err) {
+      console.log("Error in Fetching User : " + JSON.stringify(err, null, 2));
+      res.status(500).json({
+        error: "Server Failure!!",
+      });
     } else {
-        var params = {
-            TableName: "phonenumberserverless",
-            Key: {
-                "userphonenumber": value
-            }
+      console.log(
+        "Succesfully Fetching the User : " + JSON.stringify(data, null, 2)
+      );
+      if (Object.keys(data).length === 0) {
+        console.log("User Not Found!!!");
+        res.status(404).json({
+          error: "Invalid email/ phoneNumber",
+        });
+      } else {
+        const response = data.Item;
+        console.log(response);
+        const paramsforusertable = {
+          TableName: "uuidserverless",
+          Key: {
+            uuid: response.uuid,
+          },
         };
-    }
-    
-    docClient.get(params, function (err, data) {
-        if (err) {
-            console.log("Error in Fetching User : " + JSON.stringify(err, null, 2));
+        docClient.get(paramsforusertable, function (err, data) {
+          if (err) {
+            console.log(
+              "unable to retrieve data from server uuid serverless table"
+            );
             res.status(500).json({
-                error: "Server Failure!!"
-            })
-        }
-        else {
-            console.log("Succesfully Fetching the User : " + JSON.stringify(data, null, 2));
-            if(Object.keys(data).length === 0){
-                console.log("User Not Found!!!")
-                res.status(404).json({
-                    error: "Invalid email/ phoneNumber"
-                })
+              error: "Server Failure!!",
+            });
+          } else {
+            if (req.body.password === data.Item.password) {
+              res.status(200).json({
+                msg: "Congratulations! On login succesfull",
+              });
             } else {
-                const response = data.Item;
-                console.log(response)
-                const paramsforusertable = {
-                    TableName: "uuidserverless",
-                    Key: {
-                        "uuid": response.uuid
-                    }
-                };
-                docClient.get(paramsforusertable, function (err, data) {
-                    if(err) {
-                        console.log("unable to retrieve data from server uuid serverless table")
-                        res.status(500).json({
-                            error: "Server Failure!!"
-                        })
-                    } else {
-                        if(req.body.password === data.Item.password) {
-                            res.status(200).json({
-                                msg: "Congratulations! On login succesfull"
-                            })
-                        } else {
-                            res.status(200).json({
-                                error: "Password is Invalid"
-                            })
-                        }
-                    }
-                })
+              res.status(200).json({
+                error: "Password is Invalid",
+              });
             }
+          }
+        });
+      }
+    }
+  });
+});
 
-        }
-    })
-})
-
+app.post("/signup", (req, res) => {
+  const { email, password, name, phoneNumber, username } = req.body;
+  var encryptedPassword = undefined;
+  bcrypt.genSalt(10, function (err, SALT) {
+    bcrypt.hash(password, SALT, function (err, hash) {
+      encryptedPassword = hash;
+    });
+  });
+  let params = {
+    TableName: "emailserverless",
+    Key: {
+      useremail: email,
+    },
+  };
+  docClient.get(params, (err, data) => {
+    if (err) {
+      return res.status(500).json({
+        error: "server error",
+      });
+    } else {
+      if (Object.keys(data).length !== 0) {
+        res.status(404).json({
+          error: "User with email address already exists",
+        });
+      } else {
+        var params = {
+          TableName: "phonenumberserverless",
+          Key: {
+            userphonenumber: phoneNumber,
+          },
+        };
+        docClient.get(params, (err, data) => {
+          if (err) {
+            return res.status(500).json({
+              error: "server error",
+            });
+          } else {
+            if (Object.keys(data).length !== 0) {
+              res.status(404).json({
+                error: "User with Phone Number already exists",
+              });
+            } else {
+              const uniqueId = uuidv4();
+              let input = {
+                uuid: uniqueId,
+                email,
+                name,
+                password: encryptedPassword,
+                phone: phoneNumber,
+                role: "user",
+                username,
+              };
+              let params = {
+                TableName: "uuidserverless",
+                Item: input,
+              };
+              docClient.put(params, function (err, data) {
+                if (err) {
+                  res.status(500).json({ error: "Server Side error" });
+                } else {
+                  let input = {
+                    userphonenumber: phoneNumber,
+                    uuid: uniqueId,
+                  };
+                  let params = {
+                    TableName: "phonenumberserverless",
+                    Item: input,
+                  };
+                  docClient.put(params, function (err, data) {
+                    if (err) {
+                      res.status(500).json({ error: "Server Side error" });
+                    } else {
+                      let input = {
+                        uuid: uniqueId,
+                        useremail: email,
+                      };
+                      let params = {
+                        TableName: "emailserverless",
+                        Item: input,
+                      };
+                      docClient.put(params, function (err, data) {
+                        if (err) {
+                          console.log(
+                            "users::save::error - " +
+                              JSON.stringify(err, null, 2)
+                          );
+                        } else {
+                         res.status(200).json({
+                            msg: "Succesfully signed up user"
+                         });
+                        }
+                      });
+                    }
+                  });
+                }
+              });
+            }
+          }
+        });
+      }
+    }
+  });
+});
 module.exports = app;
