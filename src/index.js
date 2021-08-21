@@ -4,7 +4,10 @@ const docClient = require("./aws");
 const cors = require("cors");
 const { v4: uuidv4 } = require('uuid');
 var bcrypt = require("bcryptjs");
-const { SALT } = require("./secret");
+const { SALT , SECRET} = require("./secret");
+const passport = require('passport');
+require('./passport')(passport)
+const jwt = require('jsonwebtoken');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
@@ -144,9 +147,25 @@ app.post("/signin", (req, res) => {
             bcrypt.compare(req.body.password, data.Item.password, function(err, result) {
                 // res === true
                 if(result === true){
-                    res.status(200).json({
-                        msg: "Congratulations! On login succesfull",
-                    });
+                  const payload = {
+                    uuid: data.Item.uuid,
+                    email: data.Item.email,
+                    username: data.Item.username
+                }
+                console.log(payload)
+                jwt.sign(payload,
+                  SECRET,
+                  {expiresIn : 3600},
+                  (err,token) => {
+                    if(err){
+                      console.log("Error Occured in jwt signing")
+                      console.log(err)
+                    }
+                      return res.status(200).json({
+                          token: 'Bearer '+token,
+                      });
+                  });
+                   
                 } else {
                     res.status(200).json({
                         error: "Password is Invalid",
@@ -263,4 +282,18 @@ app.post("/signup", (req, res) => {
     }
   });
 });
+
+app.get('/failurejson', function(req, res) {
+  res.status(400).json({
+      status: 400,
+      msg:  "Authentication Failed Login Again",
+      error: "Authentication Failed Login Again"
+  });
+});
+
+app.get('/private',passport.authenticate('jwt',{session: false,failureRedirect : '/failurejson',}),(req,res)=> {
+  console.log("Request is here")
+  console.log(req.user)
+  return res.send("Welcome to the private route")
+})
 module.exports = app;

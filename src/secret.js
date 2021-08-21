@@ -6,4 +6,5 @@ module.exports = {
     ACCESSKEYID: process.env.ACCESSKEYID,
     SECRETACCESSKEY: process.env.SECRETACCESSKEY,
     SALT : process.env.SALT,
+    SECRET: process.env.SECRET
 }
