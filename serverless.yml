@@ -2,7 +2,13 @@ service: serverlessapi #Name of your App
 
 plugins:
   - serverless-dotenv-plugin
+  - serverless-add-api-key
 
+custom:
+  apiKeys:
+    - name: name1
+    - name: name2
+    
 provider:
   name: aws
   runtime: nodejs14.x # Node JS version
