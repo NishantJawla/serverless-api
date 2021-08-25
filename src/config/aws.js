@@ -1,13 +1,18 @@
-const AWS = require('aws-sdk')
+const AWS = require("aws-sdk");
 
-const {REGION,ENDPOINT,ACCESSKEYID,SECRETACCESSKEY} = require('../utils/secret');
+const {
+	REGION,
+	ENDPOINT,
+	ACCESSKEYID,
+	SECRETACCESSKEY
+} = require("../utils/secret");
 let awsConfig = {
-    "region": REGION,
-    "endpoint": ENDPOINT,
-    "accessKeyId": ACCESSKEYID,
-    "secretAccessKey": SECRETACCESSKEY
+	region: REGION,
+	endpoint: ENDPOINT,
+	accessKeyId: ACCESSKEYID,
+	secretAccessKey: SECRETACCESSKEY
 };
 
 AWS.config.update(awsConfig);
 let docClient = new AWS.DynamoDB.DocumentClient();
-module.exports= docClient;
+module.exports = docClient;
