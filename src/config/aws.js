@@ -1,4 +1,5 @@
-var AWS = require("aws-sdk");
+const AWS = require('aws-sdk')
+
 const {REGION,ENDPOINT,ACCESSKEYID,SECRETACCESSKEY} = require('../utils/secret');
 let awsConfig = {
     "region": REGION,

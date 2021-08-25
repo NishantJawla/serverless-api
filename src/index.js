@@ -1,13 +1,8 @@
-const express = require("express");
+const {jwt,express,docClient,cors,bcrypt,passport} = require('./utils/required')
 const app = express();
-const docClient = require("./config/aws");
-const cors = require("cors");
 const { v4: uuidv4 } = require('uuid');
-var bcrypt = require("bcryptjs");
 const { SALT , SECRET} = require("./utils/secret");
-const passport = require('passport');
 require('./config/passport')(passport)
-const jwt = require('jsonwebtoken');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());

@@ -1,7 +1,4 @@
-var passport = require('passport')
-const JwtStrategy = require('passport-jwt').Strategy;
-const ExtractJwt = require('passport-jwt').ExtractJwt;
-const docClient = require("./aws");
+const {docClient,ExtractJwt,JwtStrategy,passport} = require('../utils/required')
 const {SECRET} = require('../utils/secret')
 const opts ={};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
