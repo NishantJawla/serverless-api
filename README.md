@@ -16,8 +16,8 @@
 -   Directions to setup/install
 
 ```bash
-$ git clone (copy the http link from clone button)
-$ cd (filenamecreated)
+$ git clone https://github.com/NishantJawla/serverless-api.git
+$ cd serverless-api
 $ touch .env
 $ cp .env.example .env
 # Set values in .env
